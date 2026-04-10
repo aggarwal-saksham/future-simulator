@@ -104,6 +104,8 @@ const Index = () => {
   const [apiError, setApiError] = useState<string | null>(null);
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [baselineResult, setBaselineResult] = useState<SimulationResult | null>(null);
+  const [lastRunAt, setLastRunAt] = useState<string | null>(null);
+  const [lastNewsSyncAt, setLastNewsSyncAt] = useState<string | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const hasAutoRunRef = useRef(false);
 
@@ -117,6 +119,7 @@ const Index = () => {
       ...current,
       selectedNewsIds: signals.filter((signal) => signal.selected).map((signal) => signal.id),
     }));
+    setLastNewsSyncAt(new Date().toLocaleString("en-GB"));
     setNewsLoading(false);
   };
 
@@ -180,6 +183,7 @@ const Index = () => {
       setRunProgress(100);
       setResult(nextResult);
       setBaselineResult(localBaseline);
+      setLastRunAt(new Date().toLocaleString("en-GB"));
     } finally {
       window.clearInterval(progressTimer);
       window.setTimeout(() => {
@@ -227,6 +231,9 @@ const Index = () => {
                 API: {apiMode === "gemini" ? "Gemini" : "Local"}
               </span>
               <span className="rounded-full border border-white/12 bg-white/6 px-3 py-1 text-xs text-white/70">
+                Last run: {lastRunAt ?? "pending"}
+              </span>
+              <span className="rounded-full border border-white/12 bg-white/6 px-3 py-1 text-xs text-white/70">
                 Link: {pageLink}
               </span>
             </div>
@@ -258,6 +265,7 @@ const Index = () => {
                 config={config}
                 newsSignals={newsSignals}
                 isLoading={newsLoading}
+                lastSyncedAt={lastNewsSyncAt}
                 onRefresh={loadNews}
                 onToggleSignal={(id) =>
                   setConfig((current) => ({

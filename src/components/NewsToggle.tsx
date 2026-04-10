@@ -6,6 +6,7 @@ interface NewsToggleProps {
   config: SimulationConfig;
   newsSignals: NewsSignal[];
   isLoading: boolean;
+  lastSyncedAt: string | null;
   onRefresh: () => void;
   onToggleSignal: (id: string) => void;
 }
@@ -14,6 +15,7 @@ export function NewsToggle({
   config,
   newsSignals,
   isLoading,
+  lastSyncedAt,
   onRefresh,
   onToggleSignal,
 }: NewsToggleProps) {
@@ -39,6 +41,10 @@ export function NewsToggle({
         Select the headlines that should influence demand, supply, FX, or cost assumptions in this run.
         When no API key is set, the app uses demo signals so the experience stays fully functional offline.
       </p>
+
+      <div className="mt-4 rounded-full border border-border bg-white/70 px-4 py-2 text-xs text-muted-foreground">
+        Last sync: {lastSyncedAt ?? "Not fetched yet"}
+      </div>
 
       <div className="mt-6 grid gap-4">
         {newsSignals.map((signal) => {
