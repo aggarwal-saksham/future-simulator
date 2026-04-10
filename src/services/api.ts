@@ -34,15 +34,72 @@ export interface GeminiInsight {
   natwestAction: string;
 }
 
+export interface GeminiInsightResult {
+  insight: GeminiInsight | null;
+  error: string | null;
+}
+
+export interface NewsSignalResult {
+  signals: NewsSignal[];
+  source: "live" | "fallback";
+  error: string | null;
+}
+
+const cleanJsonFence = (text: string) =>
+  text
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+
+const parseGeminiInsight = (payload: unknown): GeminiInsight | null => {
+  const textParts = (payload as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> })?.candidates?.[0]?.content?.parts;
+  const text = textParts?.map((part) => part.text).find((value): value is string => typeof value === "string" && value.trim().length > 0);
+
+  if (!text) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(cleanJsonFence(text));
+    const headline = String(parsed.headline || "").trim();
+    const takeaway = String(parsed.takeaway || "").trim();
+    const natwestAction = String(parsed.natwest_action || parsed.natwestAction || "").trim();
+
+    if (!headline || !takeaway || !natwestAction) {
+      return null;
+    }
+
+    return {
+      headline,
+      takeaway,
+      natwestAction,
+    };
+  } catch {
+    return null;
+  }
+};
+
+const toIsoDate = (date: Date) => date.toISOString().slice(0, 10);
+
+const getFallbackSignals = () =>
+  [...CURATED_NEWS_SIGNALS]
+    .sort(() => Math.random() - 0.5)
+    .map((signal, index) => ({
+      ...signal,
+      id: `${signal.id}-${index}-${Date.now()}`,
+      selected: index < 2,
+    }));
+
 export async function enhanceSummaryWithGemini(
   data: DataPoint[],
   result: SimulationResult,
-): Promise<GeminiInsight | null> {
+): Promise<GeminiInsightResult> {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
   if (!apiKey) {
     console.info("[Gemini] API key missing, using local fallback summary.");
-    return null;
+    return { insight: null, error: null };
   }
 
   try {
@@ -70,26 +127,30 @@ export async function enhanceSummaryWithGemini(
     console.groupCollapsed("[Gemini] Response");
     console.log("Raw response payload", payload);
     console.groupEnd();
-    const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const insight = parseGeminiInsight(payload);
 
-    if (typeof text !== "string") {
-      console.warn("[Gemini] No text content found in response payload.");
-      return null;
+    if (!insight) {
+      console.warn("[Gemini] Response could not be parsed into a valid insight object.");
+      return {
+        insight: null,
+        error: null,
+      };
     }
 
-    const parsed = JSON.parse(text);
     console.groupCollapsed("[Gemini] Parsed insight");
-    console.log(parsed);
+    console.log(insight);
     console.groupEnd();
 
     return {
-      headline: String(parsed.headline || "").trim(),
-      takeaway: String(parsed.takeaway || "").trim(),
-      natwestAction: String(parsed.natwest_action || parsed.natwestAction || "").trim(),
+      insight,
+      error: null,
     };
   } catch (error) {
     console.warn("Gemini summary fallback triggered", error);
-    return null;
+    return {
+      insight: null,
+      error: error instanceof Error ? error.message : "Gemini request failed. Local fallback is shown instead.",
+    };
   }
 }
 
@@ -107,12 +168,16 @@ const scoreHeadline = (title: string, category: NewsSignal["category"]) => {
   return category === "demand" ? 3 : -3;
 };
 
-export async function fetchNewsSignals(): Promise<NewsSignal[]> {
+export async function fetchNewsSignals(): Promise<NewsSignalResult> {
   const apiKey = import.meta.env.VITE_NEWS_API_KEY;
 
   if (!apiKey) {
     console.info("[NewsAPI] API key missing, using curated demo signals.", CURATED_NEWS_SIGNALS);
-    return CURATED_NEWS_SIGNALS;
+    return {
+      signals: getFallbackSignals(),
+      source: "fallback",
+      error: "Live news is unavailable because no NewsAPI key is configured.",
+    };
   }
 
   try {
@@ -121,6 +186,9 @@ export async function fetchNewsSignals(): Promise<NewsSignal[]> {
     url.searchParams.set("language", "en");
     url.searchParams.set("pageSize", "6");
     url.searchParams.set("sortBy", "publishedAt");
+    url.searchParams.set("from", toIsoDate(new Date(Date.now() - 1000 * 60 * 60 * 24 * 7)));
+    url.searchParams.set("page", String(Math.floor(Math.random() * 3) + 1));
+    url.searchParams.set("_ts", String(Date.now()));
     console.groupCollapsed("[NewsAPI] Request");
     console.log("Request URL", url.toString());
     console.groupEnd();
@@ -143,31 +211,51 @@ export async function fetchNewsSignals(): Promise<NewsSignal[]> {
 
     if (articles.length === 0) {
       console.warn("[NewsAPI] No articles returned, falling back to curated signals.");
-      return CURATED_NEWS_SIGNALS;
+      return {
+        signals: getFallbackSignals(),
+        source: "fallback",
+        error: "No live articles were returned, so demo signals are shown.",
+      };
     }
 
-    const mappedSignals = articles.slice(0, 6).map((article: { title?: string; source?: { name?: string } }, index: number) => {
-      const title = article.title || `Business signal ${index + 1}`;
-      const category = classifyHeadline(title);
+    const mappedSignals = articles
+      .filter((article: { title?: string }) => Boolean(article.title))
+      .slice(0, 6)
+      .map(
+        (
+          article: { title?: string; source?: { name?: string }; description?: string; publishedAt?: string },
+          index: number,
+        ) => {
+          const title = article.title || `Business signal ${index + 1}`;
+          const category = classifyHeadline(title);
 
-      return {
-        id: `live-${index}`,
-        title,
-        source: article.source?.name || "NewsAPI",
-        category,
-        impact: scoreHeadline(title, category),
-        summary: "Live headline added to the forecasting context.",
-        selected: index < 3,
-      };
-    });
+          return {
+            id: `live-${index}-${article.publishedAt || Date.now()}`,
+            title,
+            source: article.source?.name || "NewsAPI",
+            category,
+            impact: scoreHeadline(title, category),
+            summary: article.description?.trim() || "Live headline added to the forecasting context.",
+            selected: index < 3,
+          };
+        },
+      );
 
     console.groupCollapsed("[NewsAPI] Parsed signals");
     console.log(mappedSignals);
     console.groupEnd();
 
-    return mappedSignals;
+    return {
+      signals: mappedSignals.length > 0 ? mappedSignals : getFallbackSignals(),
+      source: mappedSignals.length > 0 ? "live" : "fallback",
+      error: mappedSignals.length > 0 ? null : "Live articles could not be mapped cleanly, so demo signals are shown.",
+    };
   } catch (error) {
     console.warn("News fetch fallback triggered", error);
-    return CURATED_NEWS_SIGNALS;
+    return {
+      signals: getFallbackSignals(),
+      source: "fallback",
+      error: error instanceof Error ? error.message : "Live news request failed, so demo signals are shown.",
+    };
   }
 }

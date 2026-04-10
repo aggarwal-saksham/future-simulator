@@ -7,6 +7,7 @@ interface NewsToggleProps {
   newsSignals: NewsSignal[];
   isLoading: boolean;
   lastSyncedAt: string | null;
+  error: string | null;
   onRefresh: () => void;
   onToggleSignal: (id: string) => void;
 }
@@ -16,6 +17,7 @@ export function NewsToggle({
   newsSignals,
   isLoading,
   lastSyncedAt,
+  error,
   onRefresh,
   onToggleSignal,
 }: NewsToggleProps) {
@@ -45,6 +47,12 @@ export function NewsToggle({
       <div className="mt-4 rounded-full border border-border bg-white/70 px-4 py-2 text-xs text-muted-foreground">
         Last sync: {lastSyncedAt ?? "Not fetched yet"}
       </div>
+
+      {error ? (
+        <div className="mt-4 rounded-[20px] border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-900">
+          {error}
+        </div>
+      ) : null}
 
       <div className="mt-6 grid gap-4">
         {newsSignals.map((signal) => {

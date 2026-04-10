@@ -40,6 +40,7 @@ const FutureSimulatorPage = () => {
   const [runProgress, setRunProgress] = useState(0);
   const [apiMode, setApiMode] = useState<"gemini" | "fallback">("fallback");
   const [apiError, setApiError] = useState<string | null>(null);
+  const [newsError, setNewsError] = useState<string | null>(null);
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [baselineResult, setBaselineResult] = useState<SimulationResult | null>(null);
   const [lastRunAt, setLastRunAt] = useState<string | null>(null);
@@ -51,11 +52,12 @@ const FutureSimulatorPage = () => {
 
   const loadNews = async () => {
     setNewsLoading(true);
-    const signals = await fetchNewsSignals();
-    setNewsSignals(signals);
+    const newsResult = await fetchNewsSignals();
+    setNewsSignals(newsResult.signals);
+    setNewsError(newsResult.error);
     setConfig((current) => ({
       ...current,
-      selectedNewsIds: signals.filter((signal) => signal.selected).map((signal) => signal.id),
+      selectedNewsIds: newsResult.signals.filter((signal) => signal.selected).map((signal) => signal.id),
     }));
     setLastNewsSyncAt(new Date().toLocaleString("en-GB"));
     setNewsLoading(false);
@@ -94,7 +96,7 @@ const FutureSimulatorPage = () => {
     console.groupEnd();
 
     try {
-      const [enhancedInsight] = await Promise.all([
+      const [{ insight: enhancedInsight, error: geminiError }] = await Promise.all([
         enhanceSummaryWithGemini(selectedData, localResult),
         new Promise((resolve) => window.setTimeout(resolve, 1800)),
       ]);
@@ -109,8 +111,9 @@ const FutureSimulatorPage = () => {
           natwestActionLabel: enhancedInsight.natwestAction,
         };
         setApiMode("gemini");
-      } else if (import.meta.env.VITE_GEMINI_API_KEY) {
-        setApiError("Gemini did not return a valid dashboard insight. Local fallback is shown instead.");
+      } else {
+        setApiMode("fallback");
+        setApiError(geminiError);
       }
 
       const elapsed = Date.now() - startTime;
@@ -184,6 +187,7 @@ const FutureSimulatorPage = () => {
                 newsSignals={newsSignals}
                 isLoading={newsLoading}
                 lastSyncedAt={lastNewsSyncAt}
+                error={newsError}
                 onRefresh={loadNews}
                 onToggleSignal={(id) =>
                   setConfig((current) => ({
