@@ -24,6 +24,8 @@ const downloadFile = (filename: string, content: string, type: string) => {
   URL.revokeObjectURL(url);
 };
 
+const buildTimestamp = () => new Date().toISOString().replace(/[:.]/g, "-");
+
 const captureReport = async (reportElement: HTMLDivElement) =>
   html2canvas(reportElement, {
     scale: 2,
@@ -33,6 +35,7 @@ const captureReport = async (reportElement: HTMLDivElement) =>
 
 export function ExportPanel({ data, result, sourceLabel, reportRef }: ExportPanelProps) {
   const [isExporting, setIsExporting] = useState(false);
+  const filePrefix = `future-simulator-${buildTimestamp()}`;
 
   const withReport = async (action: (canvas: HTMLCanvasElement) => Promise<void>) => {
     const reportElement = reportRef.current;
@@ -98,6 +101,7 @@ export function ExportPanel({ data, result, sourceLabel, reportRef }: ExportPane
     await withReport(async (canvas) => {
       const dataUrl = canvas.toDataURL("image/png");
       const printWindow = window.open("", "_blank", "width=1200,height=900");
+      const timestamp = new Date().toLocaleString("en-GB");
 
       if (!printWindow) {
         throw new Error("Print popup blocked");
@@ -113,6 +117,8 @@ export function ExportPanel({ data, result, sourceLabel, reportRef }: ExportPane
             </style>
           </head>
           <body>
+            <h1 style="font-size:20px;margin:0 0 12px 0;">Future Simulator Report</h1>
+            <p style="margin:0 0 16px 0;color:#6b5d72;">Generated ${timestamp}</p>
             <img src="${dataUrl}" alt="Future Simulator report" />
           </body>
         </html>
@@ -147,7 +153,7 @@ export function ExportPanel({ data, result, sourceLabel, reportRef }: ExportPane
           className="rounded-full"
           onClick={() =>
             downloadFile(
-              "future-simulator-result.json",
+              `${filePrefix}-result.json`,
               JSON.stringify({ input: data, sourceLabel, result }, null, 2),
               "application/json",
             )
@@ -161,7 +167,7 @@ export function ExportPanel({ data, result, sourceLabel, reportRef }: ExportPane
           className="rounded-full"
           onClick={() =>
             downloadFile(
-              "future-simulator-forecast.csv",
+              `${filePrefix}-forecast.csv`,
               ["week,low,central,high,baseline", ...result.forecast.map((point) =>
                 `${point.label},${point.low},${point.central},${point.high},${point.baseline}`,
               )].join("\n"),
@@ -181,8 +187,10 @@ export function ExportPanel({ data, result, sourceLabel, reportRef }: ExportPane
               const pdf = new jsPDF("p", "mm", "a4");
               const width = pdf.internal.pageSize.getWidth();
               const height = (canvas.height * width) / canvas.width;
-              pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, width, height);
-              pdf.save("future-simulator-report.pdf");
+              pdf.setFontSize(14);
+              pdf.text("Future Simulator Report", 10, 10);
+              pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 14, width, height);
+              pdf.save(`${filePrefix}-report.pdf`);
             })
           }
         >
@@ -197,7 +205,7 @@ export function ExportPanel({ data, result, sourceLabel, reportRef }: ExportPane
             withReport(async (canvas) => {
               const anchor = document.createElement("a");
               anchor.href = canvas.toDataURL("image/png");
-              anchor.download = "future-simulator-report.png";
+              anchor.download = `${filePrefix}-report.png`;
               anchor.click();
             })
           }
