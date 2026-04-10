@@ -1,0 +1,345 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { Activity, AlertTriangle, LineChart, ShieldCheck } from "lucide-react";
+import { HeroSection } from "@/components/HeroSection";
+import { DataUpload } from "@/components/DataUpload";
+import { VariablePanel } from "@/components/VariablePanel";
+import { ForecastChart } from "@/components/ForecastChart";
+import { AISummaryCard } from "@/components/AISummaryCard";
+import { HealthScore } from "@/components/HealthScore";
+import { NatWestCard } from "@/components/NatWestCard";
+import { NewsToggle } from "@/components/NewsToggle";
+import { ScenarioCompare } from "@/components/ScenarioCompare";
+import { ExportPanel } from "@/components/ExportPanel";
+import { DashboardInsights } from "@/components/DashboardInsights";
+import { InputDatasetPanel } from "@/components/InputDatasetPanel";
+import { ModelTrainingScreen } from "@/components/ModelTrainingScreen";
+import { Button } from "@/components/ui/button";
+import { fetchNewsSignals, enhanceSummaryWithGemini } from "@/lib/api";
+import {
+  CURATED_NEWS_SIGNALS,
+  NewsSignal,
+  SimulationConfig,
+  SimulationResult,
+  generateSimulation,
+} from "@/lib/forecasting";
+import { DataPoint, sampleData } from "@/lib/sampleData";
+
+const defaultConfig: SimulationConfig = {
+  horizon: 6,
+  growthRate: 8,
+  removeOutliers: false,
+  expenseShock: 4,
+  hiringPlan: 2,
+  capexPlan: false,
+  marketingBoost: 6,
+  priceChange: 2,
+  supplierRisk: 5,
+  fxSensitivity: 4,
+  inventoryWeeks: 4,
+  includeNews: true,
+  selectedNewsIds: CURATED_NEWS_SIGNALS.filter((signal) => signal.selected).map((signal) => signal.id),
+};
+
+const baselineConfig: SimulationConfig = {
+  ...defaultConfig,
+  growthRate: 0,
+  expenseShock: 0,
+  hiringPlan: 0,
+  capexPlan: false,
+  marketingBoost: 0,
+  priceChange: 0,
+  supplierRisk: 0,
+  fxSensitivity: 0,
+  inventoryWeeks: 2,
+  includeNews: false,
+  selectedNewsIds: [],
+};
+
+const metricCards = [
+  {
+    label: "Trend",
+    icon: LineChart,
+    getValue: (result: SimulationResult) => `${result.metrics.trendPercent > 0 ? "+" : ""}${result.metrics.trendPercent.toFixed(1)}%`,
+    getTone: (result: SimulationResult) =>
+      result.metrics.trendPercent >= 0 ? "text-emerald-700" : "text-rose-700",
+  },
+  {
+    label: "Confidence",
+    icon: ShieldCheck,
+    getValue: (result: SimulationResult) => `${result.metrics.confidenceScore}/100`,
+    getTone: () => "text-primary",
+  },
+  {
+    label: "Anomalies",
+    icon: AlertTriangle,
+    getValue: (result: SimulationResult) => String(result.metrics.anomalyCount),
+    getTone: (result: SimulationResult) =>
+      result.metrics.anomalyCount === 0 ? "text-emerald-700" : "text-amber-700",
+  },
+  {
+    label: "Cash Gap Risk",
+    icon: Activity,
+    getValue: (result: SimulationResult) => `${result.metrics.cashGapRisk}%`,
+    getTone: (result: SimulationResult) =>
+      result.metrics.cashGapRisk <= 30 ? "text-emerald-700" : "text-rose-700",
+  },
+  {
+    label: "NatWest Fit",
+    icon: ShieldCheck,
+    getValue: (result: SimulationResult) => `${result.metrics.natwestFitScore}/100`,
+    getTone: () => "text-accent",
+  },
+];
+
+const Index = () => {
+  const [data, setData] = useState<DataPoint[] | null>(sampleData);
+  const [sourceLabel, setSourceLabel] = useState("Hackathon sample");
+  const [config, setConfig] = useState<SimulationConfig>(defaultConfig);
+  const [newsSignals, setNewsSignals] = useState<NewsSignal[]>(CURATED_NEWS_SIGNALS);
+  const [newsLoading, setNewsLoading] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
+  const [runProgress, setRunProgress] = useState(0);
+  const [apiMode, setApiMode] = useState<"gemini" | "fallback">("fallback");
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [result, setResult] = useState<SimulationResult | null>(null);
+  const [baselineResult, setBaselineResult] = useState<SimulationResult | null>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
+  const hasAutoRunRef = useRef(false);
+
+  const selectedData = data ?? sampleData;
+
+  const loadNews = async () => {
+    setNewsLoading(true);
+    const signals = await fetchNewsSignals();
+    setNewsSignals(signals);
+    setConfig((current) => ({
+      ...current,
+      selectedNewsIds: signals.filter((signal) => signal.selected).map((signal) => signal.id),
+    }));
+    setNewsLoading(false);
+  };
+
+  useEffect(() => {
+    void loadNews();
+  }, []);
+
+  const runSimulation = useCallback(async () => {
+    setIsRunning(true);
+    setRunProgress(8);
+    setApiMode("fallback");
+    setApiError(null);
+
+    console.groupCollapsed("[Simulation] Starting run");
+    console.log("Source label", sourceLabel);
+    console.log("Input data", selectedData);
+    console.log("Config", config);
+    console.log("News signals", newsSignals);
+    console.groupEnd();
+
+    const startTime = Date.now();
+    let progress = 8;
+    const progressTimer = window.setInterval(() => {
+      progress = Math.min(progress + 11, 92);
+      setRunProgress(progress);
+    }, 240);
+
+    const localResult = generateSimulation(selectedData, config, newsSignals);
+    const localBaseline = generateSimulation(selectedData, baselineConfig, newsSignals);
+
+    console.groupCollapsed("[Simulation] Local forecast results");
+    console.log("Scenario result", localResult);
+    console.log("Baseline result", localBaseline);
+    console.groupEnd();
+
+    try {
+      const [enhancedInsight] = await Promise.all([
+        enhanceSummaryWithGemini(selectedData, localResult),
+        new Promise((resolve) => window.setTimeout(resolve, 1800)),
+      ]);
+
+      let nextResult = localResult;
+
+      if (enhancedInsight) {
+        nextResult = {
+          ...localResult,
+          summary: enhancedInsight.takeaway,
+          insightHeadline: enhancedInsight.headline,
+          natwestActionLabel: enhancedInsight.natwestAction,
+        };
+        setApiMode("gemini");
+      } else if (import.meta.env.VITE_GEMINI_API_KEY) {
+        setApiError("Gemini did not return a valid dashboard insight. Local fallback is shown instead.");
+      }
+
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 2600) {
+        await new Promise((resolve) => window.setTimeout(resolve, 2600 - elapsed));
+      }
+
+      setRunProgress(100);
+      setResult(nextResult);
+      setBaselineResult(localBaseline);
+    } finally {
+      window.clearInterval(progressTimer);
+      window.setTimeout(() => {
+        setIsRunning(false);
+        setRunProgress(0);
+      }, 220);
+    }
+  }, [config, newsSignals, selectedData, sourceLabel]);
+
+  useEffect(() => {
+    if (hasAutoRunRef.current) {
+      return;
+    }
+    hasAutoRunRef.current = true;
+    void runSimulation();
+  }, [runSimulation]);
+
+  const hasResult = Boolean(data && result);
+
+  const pageLink = useMemo(
+    () => `${window.location.origin}${window.location.pathname}`,
+    [],
+  );
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="page-shell">
+        <nav className="sticky top-0 z-50 border-b border-white/10 bg-[rgba(52,25,65,0.84)] backdrop-blur-xl">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/12 text-sm font-semibold text-white shadow-lg">
+                FS
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.24em] text-white/55">Future Simulator</p>
+                <p className="text-sm text-white/78">NatWest forecasting prototype</p>
+              </div>
+            </div>
+
+            <div className="hidden items-center gap-3 md:flex">
+              <span className="rounded-full border border-white/12 bg-white/6 px-3 py-1 text-xs text-white/70">
+                {selectedData.length} data points
+              </span>
+              <span className="rounded-full border border-white/12 bg-white/6 px-3 py-1 text-xs text-white/70">
+                API: {apiMode === "gemini" ? "Gemini" : "Local"}
+              </span>
+              <span className="rounded-full border border-white/12 bg-white/6 px-3 py-1 text-xs text-white/70">
+                Link: {pageLink}
+              </span>
+            </div>
+          </div>
+        </nav>
+
+        <HeroSection
+          onGetStarted={() =>
+            document.getElementById("upload")?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+        />
+
+        <DataUpload
+          data={data}
+          sourceLabel={sourceLabel}
+          onDataReady={(nextData, nextSourceLabel) => {
+            setData(nextData);
+            setSourceLabel(nextSourceLabel);
+            setResult(null);
+            setBaselineResult(null);
+          }}
+        />
+
+        <section className="px-6 pb-24 pt-8">
+          <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[360px_1fr]">
+            <div className="space-y-6">
+              <VariablePanel config={config} onConfigChange={setConfig} onRun={runSimulation} isRunning={isRunning} />
+              <NewsToggle
+                config={config}
+                newsSignals={newsSignals}
+                isLoading={newsLoading}
+                onRefresh={loadNews}
+                onToggleSignal={(id) =>
+                  setConfig((current) => ({
+                    ...current,
+                    selectedNewsIds: current.selectedNewsIds.includes(id)
+                      ? current.selectedNewsIds.filter((currentId) => currentId !== id)
+                      : [...current.selectedNewsIds, id],
+                  }))
+                }
+              />
+              <InputDatasetPanel data={selectedData} sourceLabel={sourceLabel} />
+              {result ? <HealthScore score={result.healthScore} /> : null}
+            </div>
+
+            <div className="space-y-6">
+              {isRunning ? (
+                <ModelTrainingScreen progress={runProgress} />
+              ) : !hasResult ? (
+                <motion.div
+                  className="panel-surface flex min-h-[420px] flex-col items-center justify-center p-10 text-center"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <div className="rounded-3xl bg-primary/10 p-5 text-primary">
+                    <LineChart className="h-10 w-10" />
+                  </div>
+                  <h2 className="mt-6 text-3xl font-semibold text-foreground">Run the first simulation</h2>
+                  <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
+                    Upload a CSV or use the sample dataset, tune the scenario controls, and run the forecast to
+                    generate anomalies, health scoring, NatWest product triggers, and exportable output.
+                  </p>
+                  <Button className="mt-6 rounded-full px-6" onClick={runSimulation}>
+                    Generate forecast
+                  </Button>
+                </motion.div>
+              ) : result ? (
+                <div ref={reportRef} className="space-y-6">
+                  <div className="grid gap-4 md:grid-cols-5">
+                    {metricCards.map((metric) => (
+                      <div key={metric.label} className="panel-surface p-5">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-muted-foreground">{metric.label}</p>
+                          <metric.icon className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <p className={`mt-4 text-3xl font-semibold ${metric.getTone(result)}`}>
+                          {metric.getValue(result)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <ForecastChart historicalData={selectedData} forecast={result.forecast} anomalies={result.anomalies} />
+                  <DashboardInsights result={result} />
+                  <ScenarioCompare baselineResult={baselineResult} scenarioResult={result} />
+                  <AISummaryCard
+                    headline={result.insightHeadline}
+                    takeaway={result.summary}
+                    natwestAction={result.natwestActionLabel}
+                    newsImpact={result.newsImpact}
+                    apiMode={apiMode}
+                    apiError={apiError}
+                  />
+                  <NatWestCard triggers={result.triggers} />
+                </div>
+              ) : null}
+
+              {result && !isRunning ? (
+                <>
+                  <ExportPanel
+                    data={selectedData}
+                    result={result}
+                    sourceLabel={sourceLabel}
+                    reportRef={reportRef}
+                  />
+                </>
+              ) : null}
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+};
+
+export default Index;
