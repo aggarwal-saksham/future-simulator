@@ -30,6 +30,8 @@ import {
 } from "@/lib/forecasting";
 import { DataPoint, sampleData } from "@/lib/sampleData";
 
+const GEMINI_COOLDOWN_MS = 65_000;
+
 const FutureSimulatorPage = () => {
   const [data, setData] = useState<DataPoint[] | null>(sampleData);
   const [sourceLabel, setSourceLabel] = useState("Hackathon sample");
@@ -46,7 +48,7 @@ const FutureSimulatorPage = () => {
   const [lastRunAt, setLastRunAt] = useState<string | null>(null);
   const [lastNewsSyncAt, setLastNewsSyncAt] = useState<string | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
-  const hasAutoRunRef = useRef(false);
+  const lastGeminiAttemptRef = useRef(0);
 
   const selectedData = data ?? sampleData;
 
@@ -96,10 +98,22 @@ const FutureSimulatorPage = () => {
     console.groupEnd();
 
     try {
-      const [{ insight: enhancedInsight, error: geminiError }] = await Promise.all([
-        enhanceSummaryWithGemini(selectedData, localResult),
-        new Promise((resolve) => window.setTimeout(resolve, 1800)),
-      ]);
+      let enhancedInsight = null;
+      let geminiError: string | null = null;
+      const shouldCallGemini =
+        Boolean(import.meta.env.VITE_GEMINI_API_KEY) &&
+        Date.now() - lastGeminiAttemptRef.current >= GEMINI_COOLDOWN_MS;
+
+      if (shouldCallGemini) {
+        lastGeminiAttemptRef.current = Date.now();
+        const geminiResult = await enhanceSummaryWithGemini(selectedData, localResult);
+        enhancedInsight = geminiResult.insight;
+        geminiError = geminiResult.error;
+      } else if (import.meta.env.VITE_GEMINI_API_KEY) {
+        geminiError = "Gemini is cooling down to avoid rate limits. Using the local summary for this run.";
+      }
+
+      await new Promise((resolve) => window.setTimeout(resolve, 1800));
 
       let nextResult = localResult;
 
@@ -133,14 +147,6 @@ const FutureSimulatorPage = () => {
       }, 220);
     }
   }, [config, newsSignals, selectedData, sourceLabel]);
-
-  useEffect(() => {
-    if (hasAutoRunRef.current) {
-      return;
-    }
-    hasAutoRunRef.current = true;
-    void runSimulation();
-  }, [runSimulation]);
 
   const hasResult = Boolean(data && result);
 

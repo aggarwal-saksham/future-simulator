@@ -40,8 +40,7 @@ export function NewsToggle({
       </div>
 
       <p className="mt-4 text-sm leading-7 text-muted-foreground">
-        Select the headlines that should influence demand, supply, FX, or cost assumptions in this run.
-        When no API key is set, the app uses demo signals so the experience stays fully functional offline.
+        Select the live headlines that should influence demand, supply, FX, or cost assumptions in this run.
       </p>
 
       <div className="mt-4 rounded-full border border-border bg-white/70 px-4 py-2 text-xs text-muted-foreground">
@@ -51,6 +50,12 @@ export function NewsToggle({
       {error ? (
         <div className="mt-4 rounded-[20px] border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-900">
           {error}
+        </div>
+      ) : null}
+
+      {newsSignals.length === 0 ? (
+        <div className="mt-6 rounded-[20px] border border-dashed border-border bg-white/60 px-4 py-6 text-sm text-muted-foreground">
+          No live news signals are available right now.
         </div>
       ) : null}
 

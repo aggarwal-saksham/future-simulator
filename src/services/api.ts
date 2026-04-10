@@ -41,7 +41,7 @@ export interface GeminiInsightResult {
 
 export interface NewsSignalResult {
   signals: NewsSignal[];
-  source: "live" | "fallback";
+  source: "live" | "empty";
   error: string | null;
 }
 
@@ -81,15 +81,6 @@ const parseGeminiInsight = (payload: unknown): GeminiInsight | null => {
 };
 
 const toIsoDate = (date: Date) => date.toISOString().slice(0, 10);
-
-const getFallbackSignals = () =>
-  [...CURATED_NEWS_SIGNALS]
-    .sort(() => Math.random() - 0.5)
-    .map((signal, index) => ({
-      ...signal,
-      id: `${signal.id}-${index}-${Date.now()}`,
-      selected: index < 2,
-    }));
 
 export async function enhanceSummaryWithGemini(
   data: DataPoint[],
@@ -147,9 +138,15 @@ export async function enhanceSummaryWithGemini(
     };
   } catch (error) {
     console.warn("Gemini summary fallback triggered", error);
+    const message =
+      error instanceof Error && error.message.includes("429")
+        ? "Gemini rate limit reached (429). Using the local summary for now."
+        : error instanceof Error
+          ? error.message
+          : "Gemini request failed. Local fallback is shown instead.";
     return {
       insight: null,
-      error: error instanceof Error ? error.message : "Gemini request failed. Local fallback is shown instead.",
+      error: message,
     };
   }
 }
@@ -172,10 +169,10 @@ export async function fetchNewsSignals(): Promise<NewsSignalResult> {
   const apiKey = import.meta.env.VITE_NEWS_API_KEY;
 
   if (!apiKey) {
-    console.info("[NewsAPI] API key missing, using curated demo signals.", CURATED_NEWS_SIGNALS);
+    console.info("[NewsAPI] API key missing.");
     return {
-      signals: getFallbackSignals(),
-      source: "fallback",
+      signals: [],
+      source: "empty",
       error: "Live news is unavailable because no NewsAPI key is configured.",
     };
   }
@@ -210,11 +207,11 @@ export async function fetchNewsSignals(): Promise<NewsSignalResult> {
     const articles = Array.isArray(payload?.articles) ? payload.articles : [];
 
     if (articles.length === 0) {
-      console.warn("[NewsAPI] No articles returned, falling back to curated signals.");
+      console.warn("[NewsAPI] No articles returned.");
       return {
-        signals: getFallbackSignals(),
-        source: "fallback",
-        error: "No live articles were returned, so demo signals are shown.",
+        signals: [],
+        source: "empty",
+        error: "No live articles were returned for this query.",
       };
     }
 
@@ -246,16 +243,22 @@ export async function fetchNewsSignals(): Promise<NewsSignalResult> {
     console.groupEnd();
 
     return {
-      signals: mappedSignals.length > 0 ? mappedSignals : getFallbackSignals(),
-      source: mappedSignals.length > 0 ? "live" : "fallback",
-      error: mappedSignals.length > 0 ? null : "Live articles could not be mapped cleanly, so demo signals are shown.",
+      signals: mappedSignals,
+      source: mappedSignals.length > 0 ? "live" : "empty",
+      error: mappedSignals.length > 0 ? null : "Live articles could not be mapped cleanly.",
     };
   } catch (error) {
     console.warn("News fetch fallback triggered", error);
+    const message =
+      error instanceof Error && error.message.includes("429")
+        ? "NewsAPI rate limit reached (429). Try again later."
+        : error instanceof Error
+          ? error.message
+          : "Live news request failed.";
     return {
-      signals: getFallbackSignals(),
-      source: "fallback",
-      error: error instanceof Error ? error.message : "Live news request failed, so demo signals are shown.",
+      signals: [],
+      source: "empty",
+      error: message,
     };
   }
 }
