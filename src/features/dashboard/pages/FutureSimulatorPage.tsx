@@ -1,21 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Activity, AlertTriangle, LineChart, ShieldCheck } from "lucide-react";
-import { HeroSection } from "@/components/HeroSection";
-import { DataUpload } from "@/components/DataUpload";
-import { VariablePanel } from "@/components/VariablePanel";
-import { ForecastChart } from "@/components/ForecastChart";
-import { AISummaryCard } from "@/components/AISummaryCard";
-import { HealthScore } from "@/components/HealthScore";
-import { NatWestCard } from "@/components/NatWestCard";
-import { NewsToggle } from "@/components/NewsToggle";
-import { ScenarioCompare } from "@/components/ScenarioCompare";
-import { ExportPanel } from "@/components/ExportPanel";
-import { DashboardInsights } from "@/components/DashboardInsights";
-import { InputDatasetPanel } from "@/components/InputDatasetPanel";
-import { ModelTrainingScreen } from "@/components/ModelTrainingScreen";
+import { LineChart } from "lucide-react";
+import { AISummaryCard } from "@/features/dashboard/components/AISummaryCard";
+import { DashboardInsights } from "@/features/dashboard/components/DashboardInsights";
+import { DataUpload } from "@/features/dashboard/components/DataUpload";
+import { ExportPanel } from "@/features/dashboard/components/ExportPanel";
+import { ForecastChart } from "@/features/dashboard/components/ForecastChart";
+import { HealthScore } from "@/features/dashboard/components/HealthScore";
+import { HeroSection } from "@/features/dashboard/components/HeroSection";
+import { InputDatasetPanel } from "@/features/dashboard/components/InputDatasetPanel";
+import { ModelTrainingScreen } from "@/features/dashboard/components/ModelTrainingScreen";
+import { NatWestCard } from "@/features/dashboard/components/NatWestCard";
+import { NewsToggle } from "@/features/dashboard/components/NewsToggle";
+import { ScenarioCompare } from "@/features/dashboard/components/ScenarioCompare";
+import { VariablePanel } from "@/features/dashboard/components/VariablePanel";
+import {
+  baselineSimulationConfig,
+  dashboardMetricCards,
+  defaultSimulationConfig,
+} from "@/features/dashboard/config";
 import { Button } from "@/components/ui/button";
-import { fetchNewsSignals, enhanceSummaryWithGemini } from "@/lib/api";
+import { fetchNewsSignals, enhanceSummaryWithGemini } from "@/services/api";
 import {
   CURATED_NEWS_SIGNALS,
   NewsSignal,
@@ -25,77 +30,10 @@ import {
 } from "@/lib/forecasting";
 import { DataPoint, sampleData } from "@/lib/sampleData";
 
-const defaultConfig: SimulationConfig = {
-  horizon: 6,
-  growthRate: 8,
-  removeOutliers: false,
-  expenseShock: 4,
-  hiringPlan: 2,
-  capexPlan: false,
-  marketingBoost: 6,
-  priceChange: 2,
-  supplierRisk: 5,
-  fxSensitivity: 4,
-  inventoryWeeks: 4,
-  includeNews: true,
-  selectedNewsIds: CURATED_NEWS_SIGNALS.filter((signal) => signal.selected).map((signal) => signal.id),
-};
-
-const baselineConfig: SimulationConfig = {
-  ...defaultConfig,
-  growthRate: 0,
-  expenseShock: 0,
-  hiringPlan: 0,
-  capexPlan: false,
-  marketingBoost: 0,
-  priceChange: 0,
-  supplierRisk: 0,
-  fxSensitivity: 0,
-  inventoryWeeks: 2,
-  includeNews: false,
-  selectedNewsIds: [],
-};
-
-const metricCards = [
-  {
-    label: "Trend",
-    icon: LineChart,
-    getValue: (result: SimulationResult) => `${result.metrics.trendPercent > 0 ? "+" : ""}${result.metrics.trendPercent.toFixed(1)}%`,
-    getTone: (result: SimulationResult) =>
-      result.metrics.trendPercent >= 0 ? "text-emerald-700" : "text-rose-700",
-  },
-  {
-    label: "Confidence",
-    icon: ShieldCheck,
-    getValue: (result: SimulationResult) => `${result.metrics.confidenceScore}/100`,
-    getTone: () => "text-primary",
-  },
-  {
-    label: "Anomalies",
-    icon: AlertTriangle,
-    getValue: (result: SimulationResult) => String(result.metrics.anomalyCount),
-    getTone: (result: SimulationResult) =>
-      result.metrics.anomalyCount === 0 ? "text-emerald-700" : "text-amber-700",
-  },
-  {
-    label: "Cash Gap Risk",
-    icon: Activity,
-    getValue: (result: SimulationResult) => `${result.metrics.cashGapRisk}%`,
-    getTone: (result: SimulationResult) =>
-      result.metrics.cashGapRisk <= 30 ? "text-emerald-700" : "text-rose-700",
-  },
-  {
-    label: "NatWest Fit",
-    icon: ShieldCheck,
-    getValue: (result: SimulationResult) => `${result.metrics.natwestFitScore}/100`,
-    getTone: () => "text-accent",
-  },
-];
-
-const Index = () => {
+const FutureSimulatorPage = () => {
   const [data, setData] = useState<DataPoint[] | null>(sampleData);
   const [sourceLabel, setSourceLabel] = useState("Hackathon sample");
-  const [config, setConfig] = useState<SimulationConfig>(defaultConfig);
+  const [config, setConfig] = useState<SimulationConfig>(defaultSimulationConfig);
   const [newsSignals, setNewsSignals] = useState<NewsSignal[]>(CURATED_NEWS_SIGNALS);
   const [newsLoading, setNewsLoading] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
@@ -148,7 +86,7 @@ const Index = () => {
     }, 240);
 
     const localResult = generateSimulation(selectedData, config, newsSignals);
-    const localBaseline = generateSimulation(selectedData, baselineConfig, newsSignals);
+    const localBaseline = generateSimulation(selectedData, baselineSimulationConfig, newsSignals);
 
     console.groupCollapsed("[Simulation] Local forecast results");
     console.log("Scenario result", localResult);
@@ -304,7 +242,7 @@ const Index = () => {
               ) : result ? (
                 <div ref={reportRef} className="space-y-6">
                   <div className="grid gap-4 md:grid-cols-5">
-                    {metricCards.map((metric) => (
+                    {dashboardMetricCards.map((metric) => (
                       <div key={metric.label} className="panel-surface p-5">
                         <div className="flex items-center justify-between">
                           <p className="text-sm text-muted-foreground">{metric.label}</p>
@@ -350,4 +288,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default FutureSimulatorPage;
