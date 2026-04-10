@@ -1,4 +1,4 @@
-import { Activity, AlertTriangle, LineChart, ShieldCheck } from "lucide-react";
+import { Activity, LineChart, ShieldCheck } from "lucide-react";
 import { CURATED_NEWS_SIGNALS, SimulationConfig, SimulationResult } from "@/lib/forecasting";
 
 export const defaultSimulationConfig: SimulationConfig = {
@@ -48,23 +48,10 @@ export const dashboardMetricCards = [
     getTone: () => "text-primary",
   },
   {
-    label: "Anomalies",
-    icon: AlertTriangle,
-    getValue: (result: SimulationResult) => String(result.metrics.anomalyCount),
-    getTone: (result: SimulationResult) =>
-      result.metrics.anomalyCount === 0 ? "text-emerald-700" : "text-amber-700",
-  },
-  {
     label: "Cash Gap Risk",
     icon: Activity,
     getValue: (result: SimulationResult) => `${result.metrics.cashGapRisk}%`,
     getTone: (result: SimulationResult) =>
       result.metrics.cashGapRisk <= 30 ? "text-emerald-700" : "text-rose-700",
-  },
-  {
-    label: "NatWest Fit",
-    icon: ShieldCheck,
-    getValue: (result: SimulationResult) => `${result.metrics.natwestFitScore}/100`,
-    getTone: () => "text-accent",
   },
 ];

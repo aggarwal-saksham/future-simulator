@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { LineChart } from "lucide-react";
 import { AISummaryCard } from "@/features/dashboard/components/AISummaryCard";
@@ -141,39 +141,19 @@ const FutureSimulatorPage = () => {
 
   const hasResult = Boolean(data && result);
 
-  const pageLink = useMemo(
-    () => `${window.location.origin}${window.location.pathname}`,
-    [],
-  );
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="page-shell">
-        <nav className="sticky top-0 z-50 border-b border-white/10 bg-[rgba(52,25,65,0.84)] backdrop-blur-xl">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <nav className="sticky top-0 z-50 border-b border-white/10 bg-[rgba(52,25,65,0.72)] backdrop-blur-lg">
+          <div className="mx-auto flex max-w-7xl items-center px-6 py-4">
             <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/12 text-sm font-semibold text-white shadow-lg">
+              <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/10 text-sm font-semibold text-white">
                 FS
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.24em] text-white/55">Future Simulator</p>
-                <p className="text-sm text-white/78">NatWest forecasting prototype</p>
+                <p className="text-sm text-white/72">Scenario forecasting</p>
               </div>
-            </div>
-
-            <div className="hidden items-center gap-3 md:flex">
-              <span className="rounded-full border border-white/12 bg-white/6 px-3 py-1 text-xs text-white/70">
-                {selectedData.length} data points
-              </span>
-              <span className="rounded-full border border-white/12 bg-white/6 px-3 py-1 text-xs text-white/70">
-                API: {apiMode === "gemini" ? "Gemini" : "Local"}
-              </span>
-              <span className="rounded-full border border-white/12 bg-white/6 px-3 py-1 text-xs text-white/70">
-                Last run: {lastRunAt ?? "pending"}
-              </span>
-              <span className="rounded-full border border-white/12 bg-white/6 px-3 py-1 text-xs text-white/70">
-                Link: {pageLink}
-              </span>
             </div>
           </div>
         </nav>
@@ -232,8 +212,7 @@ const FutureSimulatorPage = () => {
                   </div>
                   <h2 className="mt-6 text-3xl font-semibold text-foreground">Run the first simulation</h2>
                   <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
-                    Upload a CSV or use the sample dataset, tune the scenario controls, and run the forecast to
-                    generate anomalies, health scoring, NatWest product triggers, and exportable output.
+                    Upload data, adjust the scenario, and generate a clearer short-range forecast.
                   </p>
                   <Button className="mt-6 rounded-full px-6" onClick={runSimulation}>
                     Generate forecast
@@ -241,7 +220,7 @@ const FutureSimulatorPage = () => {
                 </motion.div>
               ) : result ? (
                 <div ref={reportRef} className="space-y-6">
-                  <div className="grid gap-4 md:grid-cols-5">
+                  <div className="grid gap-4 md:grid-cols-3">
                     {dashboardMetricCards.map((metric) => (
                       <div key={metric.label} className="panel-surface p-5">
                         <div className="flex items-center justify-between">
