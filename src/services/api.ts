@@ -3,7 +3,7 @@ import { DataPoint } from "@/lib/sampleData";
 
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
-const NEWS_URL = "https://newsapi.org/v2/everything";
+const NEWS_URL = "https://api.thenewsapi.com/v1/news/all";
 
 const buildGeminiPayload = (data: DataPoint[], result: SimulationResult) => ({
   contents: [
@@ -166,45 +166,43 @@ const scoreHeadline = (title: string, category: NewsSignal["category"]) => {
 };
 
 export async function fetchNewsSignals(): Promise<NewsSignalResult> {
-  const apiKey = import.meta.env.VITE_NEWS_API_KEY;
+  const apiKey = import.meta.env.VITE_THENEWSAPI_TOKEN || import.meta.env.VITE_NEWS_API_KEY;
 
   if (!apiKey) {
     console.info("[NewsAPI] API key missing.");
     return {
       signals: [],
       source: "empty",
-      error: "Live news is unavailable because no NewsAPI key is configured.",
+      error: "Live news is unavailable because no The News API token is configured.",
     };
   }
 
   try {
     const url = new URL(NEWS_URL);
-    url.searchParams.set("q", "small business OR UK business OR supply chain OR sterling");
+    url.searchParams.set("api_token", apiKey);
+    url.searchParams.set("search", '("small business" | "UK business" | "supply chain" | sterling)');
+    url.searchParams.set("categories", "business");
     url.searchParams.set("language", "en");
-    url.searchParams.set("pageSize", "6");
-    url.searchParams.set("sortBy", "publishedAt");
-    url.searchParams.set("from", toIsoDate(new Date(Date.now() - 1000 * 60 * 60 * 24 * 7)));
+    url.searchParams.set("limit", "6");
+    url.searchParams.set("sort", "published_at");
+    url.searchParams.set("published_after", `${toIsoDate(new Date(Date.now() - 1000 * 60 * 60 * 24 * 7))}T00:00:00`);
     url.searchParams.set("page", String(Math.floor(Math.random() * 3) + 1));
     url.searchParams.set("_ts", String(Date.now()));
     console.groupCollapsed("[NewsAPI] Request");
     console.log("Request URL", url.toString());
     console.groupEnd();
 
-    const response = await fetch(url.toString(), {
-      headers: {
-        "X-Api-Key": apiKey,
-      },
-    });
+    const response = await fetch(url.toString());
 
     if (!response.ok) {
-      throw new Error(`NewsAPI failed with ${response.status}`);
+      throw new Error(`The News API failed with ${response.status}`);
     }
 
     const payload = await response.json();
     console.groupCollapsed("[NewsAPI] Response");
     console.log("Raw response payload", payload);
     console.groupEnd();
-    const articles = Array.isArray(payload?.articles) ? payload.articles : [];
+    const articles = Array.isArray(payload?.data) ? payload.data : [];
 
     if (articles.length === 0) {
       console.warn("[NewsAPI] No articles returned.");
@@ -220,19 +218,25 @@ export async function fetchNewsSignals(): Promise<NewsSignalResult> {
       .slice(0, 6)
       .map(
         (
-          article: { title?: string; source?: { name?: string }; description?: string; publishedAt?: string },
+          article: {
+            title?: string;
+            source?: string;
+            description?: string;
+            snippet?: string;
+            published_at?: string;
+          },
           index: number,
         ) => {
           const title = article.title || `Business signal ${index + 1}`;
           const category = classifyHeadline(title);
 
           return {
-            id: `live-${index}-${article.publishedAt || Date.now()}`,
+            id: `live-${index}-${article.published_at || Date.now()}`,
             title,
-            source: article.source?.name || "NewsAPI",
+            source: article.source || "The News API",
             category,
             impact: scoreHeadline(title, category),
-            summary: article.description?.trim() || "Live headline added to the forecasting context.",
+            summary: article.description?.trim() || article.snippet?.trim() || "Live headline added to the forecasting context.",
             selected: index < 3,
           };
         },

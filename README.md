@@ -16,7 +16,8 @@ Future Simulator is a Vite + React + TypeScript dashboard for running business f
 1. Install dependencies with `npm install`
 2. Copy `.env.example` to `.env`
 3. Add your Gemini API key to `VITE_GEMINI_API_KEY`
-4. Run `npm run dev`
+4. Optionally add your The News API token to `VITE_THENEWSAPI_TOKEN`
+5. Run `npm run dev`
 
 ## Gemini API Key
 
@@ -28,3 +29,12 @@ For the free tier, create a key in Google AI Studio:
 4. Add it to `.env` as `VITE_GEMINI_API_KEY=your_key_here`
 
 If the key is missing, the dashboard automatically falls back to the local summary generator.
+
+## Live News Token
+
+For live news in local and deployed environments, use The News API:
+
+1. Open [The News API](https://www.thenewsapi.com/)
+2. Create a free account
+3. Copy your API token
+4. Add it to `.env` as `VITE_THENEWSAPI_TOKEN=your_token_here`
