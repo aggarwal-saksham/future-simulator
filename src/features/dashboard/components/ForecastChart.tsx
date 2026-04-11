@@ -48,7 +48,7 @@ export function ForecastChart({ historicalData, forecast, anomalies }: ForecastC
     >
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow mb-2">Step 5 — Output UI</p>
+          <p className="eyebrow mb-2">Step 4 — Output UI</p>
           <h3 className="text-2xl font-semibold text-foreground">Forecast Chart</h3>
         </div>
       </div>

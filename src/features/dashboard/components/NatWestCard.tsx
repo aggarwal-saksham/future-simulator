@@ -30,7 +30,7 @@ export function NatWestCard({ triggers }: NatWestCardProps) {
             <Building2 className="h-5 w-5" />
           </div>
           <div>
-            <p className="eyebrow">Step 4 — NatWest banking intelligence</p>
+            <p className="eyebrow">Step 3 — NatWest banking intelligence</p>
             <h3 className="text-xl font-semibold text-foreground">No active product trigger</h3>
           </div>
         </div>
@@ -77,11 +77,11 @@ export function NatWestCard({ triggers }: NatWestCardProps) {
                 <Building2 className="h-5 w-5" />
               </div>
               <div className="flex-1">
-                <p className="eyebrow mb-2">Step 4 — NatWest banking intelligence</p>
+                <p className="eyebrow mb-2">Step 3 — NatWest banking intelligence</p>
                 <h3 className="text-2xl font-semibold text-foreground">{trigger.product}</h3>
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-muted-foreground">
-                    {trigger.type.replaceAll("_", " ")}
+                    {trigger.type.replace(/_/g, " ")}
                   </span>
                   <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                     {trigger.severity} priority

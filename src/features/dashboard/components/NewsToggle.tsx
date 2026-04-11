@@ -29,7 +29,7 @@ export function NewsToggle({
             <Globe2 className="h-5 w-5" />
           </div>
           <div>
-            <p className="eyebrow">Step 3 — Fetch Latest News (optional)</p>
+            <p className="eyebrow">Step 3 - Fetch Latest News</p>
             <h3 className="text-3xl font-bold text-foreground">Select news to base your forecast on</h3>
           </div>
         </div>
@@ -55,7 +55,7 @@ export function NewsToggle({
         </div>
       ) : null}
 
-      <div className="mt-6 grid gap-4">
+      <div className="mt-6 grid gap-4 overflow-y-auto max-h-[380px] pr-2">
         {newsSignals.map((signal) => {
           const selected = config.selectedNewsIds.includes(signal.id);
           const tone =
@@ -67,9 +67,8 @@ export function NewsToggle({
             <button
               key={signal.id}
               onClick={() => onToggleSignal(signal.id)}
-              className={`rounded-[24px] border p-4 text-left transition ${
-                selected ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-white/70"
-              }`}
+              className={`rounded-[24px] border p-4 text-left transition ${selected ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-white/70"
+                }`}
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex-1">
@@ -86,9 +85,8 @@ export function NewsToggle({
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">{signal.summary}</p>
                 </div>
                 <span
-                  className={`rounded-full px-3 py-1 text-xs font-medium ${
-                    selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                  }`}
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                    }`}
                 >
                   {selected && config.includeNews ? "Applied" : "Optional"}
                 </span>
