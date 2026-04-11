@@ -191,24 +191,26 @@ const FutureSimulatorPage = () => {
 
         {wizardStep === 2 && (
           <section className="px-6 pb-24 pt-8">
-            <div className="mx-auto max-w-2xl space-y-6">
+            <div className="mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-2 items-start gap-6">
               <VariablePanel config={config} onConfigChange={setConfig} onRun={() => { setWizardStep(3); runSimulation(); }} isRunning={isRunning} />
-              <NewsToggle
-                config={config}
-                newsSignals={newsSignals}
-                isLoading={newsLoading}
-                lastSyncedAt={lastNewsSyncAt}
-                error={newsError}
-                onRefresh={loadNews}
-                onToggleSignal={(id) =>
-                  setConfig((current) => ({
-                    ...current,
-                    selectedNewsIds: current.selectedNewsIds.includes(id)
-                      ? current.selectedNewsIds.filter((currentId) => currentId !== id)
-                      : [...current.selectedNewsIds, id],
-                  }))
-                }
-              />
+              {config.includeNews && (
+                <NewsToggle
+                  config={config}
+                  newsSignals={newsSignals}
+                  isLoading={newsLoading}
+                  lastSyncedAt={lastNewsSyncAt}
+                  error={newsError}
+                  onRefresh={loadNews}
+                  onToggleSignal={(id) =>
+                    setConfig((current) => ({
+                      ...current,
+                      selectedNewsIds: current.selectedNewsIds.includes(id)
+                        ? current.selectedNewsIds.filter((currentId) => currentId !== id)
+                        : [...current.selectedNewsIds, id],
+                    }))
+                  }
+                />
+              )}
             </div>
           </section>
         )}

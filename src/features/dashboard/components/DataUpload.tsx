@@ -53,7 +53,7 @@ export function DataUpload({ data, sourceLabel, onDataReady }: DataUploadProps) 
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="eyebrow mb-2">Step 1 — Data input</p>
-              <h2 className="text-3xl font-semibold tracking-tight text-foreground">
+              <h2 className="text-4xl font-bold tracking-tight text-foreground">
                 Select dataset
               </h2>
             </div>

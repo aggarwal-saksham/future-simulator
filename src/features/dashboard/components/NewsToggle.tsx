@@ -30,7 +30,7 @@ export function NewsToggle({
           </div>
           <div>
             <p className="eyebrow">Step 3 — Fetch Latest News (optional)</p>
-            <h3 className="text-xl font-semibold text-foreground">Select news to base your forecast on</h3>
+            <h3 className="text-3xl font-bold text-foreground">Select news to base your forecast on</h3>
           </div>
         </div>
         <Button variant="secondary" className="rounded-full" onClick={onRefresh} disabled={isLoading}>

@@ -70,7 +70,7 @@ export function VariablePanel({
         </div>
         <div>
           <p className="eyebrow">Step 2 — AI processing core</p>
-          <h3 className="text-xl font-semibold text-foreground">Configure Parameters</h3>
+          <h3 className="text-3xl font-bold text-foreground">Configure Parameters</h3>
         </div>
       </div>
 
@@ -97,6 +97,14 @@ export function VariablePanel({
               <p className="text-sm text-muted-foreground">Test the effect of an equipment or fit-out investment.</p>
             </div>
             <Switch checked={config.capexPlan} onCheckedChange={(value) => update("capexPlan", value)} />
+          </div>
+
+          <div className="flex items-center justify-between border-t border-border/50 pt-4 mt-2">
+            <div>
+              <Label className="text-base font-bold">Include News</Label>
+              <p className="text-sm text-muted-foreground">Enable fetching and parsing external news signals.</p>
+            </div>
+            <Switch checked={config.includeNews} onCheckedChange={(value) => update("includeNews", value)} />
           </div>
         </div>
       </div>
