@@ -31,11 +31,11 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
             transition={{ duration: 0.55, delay: 0.1 }}
           >
             We predict your future cash flow.
-            <span className="block text-primary-foreground/72">So you can act before you run out of money.</span>
+            <span className="block text-white/75">So you can act before you run out of money.</span>
           </motion.h1>
 
           <motion.p
-            className="mt-5 max-w-xl text-base leading-7 text-primary-foreground/76 md:text-lg"
+            className="mt-5 max-w-xl text-base leading-7 text-white/80 md:text-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.18 }}
@@ -52,10 +52,10 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
             <Button
               size="lg"
               onClick={onGetStarted}
-              className="rounded-full bg-white px-7 text-primary hover:bg-white/90"
+              className="rounded-full bg-gradient-to-r from-accent to-primary px-8 font-bold tracking-wide text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl border-0"
             >
-              Start
-              <ArrowRight className="ml-2 h-4 w-4" />
+              Start Simulator
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </motion.div>
         </div>
@@ -87,13 +87,13 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
               <div key={item.title} className="rounded-[24px] border border-white/10 bg-white/4 p-4">
                 <item.icon className="h-5 w-5 text-primary-foreground" />
                 <h2 className="mt-3 text-base font-semibold text-primary-foreground">{item.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-primary-foreground/68">{item.text}</p>
+                <p className="mt-2 text-sm leading-6 text-white/70">{item.text}</p>
               </div>
             ))}
           </div>
 
           <div className="mt-5 rounded-[24px] bg-white/6 p-4">
-            <p className="text-sm leading-6 text-primary-foreground/72">
+            <p className="text-sm leading-6 text-white/75">
               A simple tool to help anyone understand their business cash flow.
             </p>
           </div>
