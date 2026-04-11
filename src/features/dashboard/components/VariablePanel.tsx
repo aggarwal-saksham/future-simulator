@@ -63,7 +63,7 @@ export function VariablePanel({
   );
 
   return (
-    <div className="panel-surface p-6">
+    <div className="panel-surface p-6 flex flex-col h-full">
       <div className="flex items-center gap-3">
         <div className="rounded-2xl bg-primary/10 p-3 text-primary">
           <Settings2 className="h-5 w-5" />
@@ -109,7 +109,7 @@ export function VariablePanel({
         </div>
       </div>
 
-      <Button onClick={onRun} className="mt-6 w-full rounded-full py-6 text-base" disabled={isRunning}>
+      <Button onClick={onRun} className="mt-auto w-full rounded-full py-6 text-base" disabled={isRunning}>
         {isRunning ? (
           <span className="inline-flex items-center gap-2">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />

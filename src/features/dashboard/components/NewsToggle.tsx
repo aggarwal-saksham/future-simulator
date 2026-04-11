@@ -22,7 +22,7 @@ export function NewsToggle({
   onToggleSignal,
 }: NewsToggleProps) {
   return (
-    <div className="panel-surface p-6">
+    <div className="panel-surface p-6 flex flex-col h-full">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="rounded-2xl bg-primary/10 p-3 text-primary">
@@ -55,7 +55,7 @@ export function NewsToggle({
         </div>
       ) : null}
 
-      <div className="mt-6 grid gap-4 overflow-y-auto max-h-[380px] pr-2">
+      <div className="mt-6 grid gap-4 overflow-y-auto flex-1 min-h-0 pr-2">
         {newsSignals.map((signal) => {
           const selected = config.selectedNewsIds.includes(signal.id);
           const tone =

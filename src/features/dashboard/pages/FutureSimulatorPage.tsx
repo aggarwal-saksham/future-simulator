@@ -191,7 +191,7 @@ const FutureSimulatorPage = () => {
 
         {wizardStep === 2 && (
           <section className="px-6 pb-24 pt-8">
-            <div className="mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-2 items-start gap-6">
+            <div className="mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-2 items-stretch gap-6">
               <VariablePanel config={config} onConfigChange={setConfig} onRun={() => { setWizardStep(3); runSimulation(); }} isRunning={isRunning} />
               {config.includeNews && (
                 <NewsToggle
