@@ -205,7 +205,3 @@ The project expects the following values in `.env`:
 VITE_GEMINI_API_KEY=
 VITE_THENEWSAPI_TOKEN=
 ```
-
-### Important Security Note
-
-This project currently uses `VITE_...` environment variables, which means the values are exposed to the frontend bundle at runtime. This is acceptable for a hackathon prototype or demo, but not ideal for production-grade secret handling. A production version should move external API calls behind a backend or serverless proxy.
