@@ -1,6 +1,8 @@
-# Future Simulator
+# Future Simulator - By Byte Busters
 
 ## Overview
+
+![User Flow](screenshots/User-Flow.png)
 
 **What this project does:** Future Simulator is a React-based forecasting dashboard for exploring short-term business scenarios. It helps a user upload operating data, adjust a set of business assumptions, and generate a six-week forecast with confidence ranges, anomaly detection, and a concise AI-assisted summary.
 
@@ -91,39 +93,7 @@ cmd /c npm run preview
 
 ## Tech Stack
 
-### Languages
-
-- TypeScript
-- CSS
-- HTML
-
-### Frontend Framework And Tooling
-
-- React 18
-- Vite
-- React Router
-- React Query
-- Vitest
-
-### UI And Visualization
-
-- Tailwind CSS
-- shadcn/ui
-- Radix UI
-- Framer Motion
-- Recharts
-- Lucide React
-
-### Data And Utilities
-
-- Papa Parse for CSV parsing
-- html2canvas for snapshot export
-- jsPDF for PDF export
-
-### External APIs / AI Services
-
-- Google Gemini API for optional AI-generated summaries
-- The News API for optional live business/news signals
+![Tech Stack](screenshots/Tech-Stack.png)
 
 ## Usage Examples
 
@@ -185,33 +155,37 @@ Behavior:
 - If The News API responds successfully, live news signals are shown
 - If the news request fails, curated fallback signals are shown instead
 
+## Dashboard Walkthrough
+
+Below is a sequential visual walkthrough of the tool's core components:
+
+### 1. Landing Page
+![Landing Page](screenshots/webite_screenshots/1_landing_page.png)
+
+### 2. Upload Historical Data
+![Upload CSV Data](screenshots/webite_screenshots/2_upload_csv.png)
+
+### 3. Adjust Scenarios & Business Variables
+![Adjust Business Variables](screenshots/webite_screenshots/3_adjust_variables.png)
+
+### 4. Six-Week Forecast Visualization
+![Forecast Chart](screenshots/webite_screenshots/4_forecast%20chart.png)
+
+### 5. Detailed Metric Breakdowns
+![Secondary Metric Charts](screenshots/webite_screenshots/5_other_charts.png)
+
+### 6. AI-Assisted Executive Summary
+![AI Generated Summary Analysis](screenshots/webite_screenshots/6_ai_summary.png)
+
+### 7. NatWest Intelligent Triggers
+![NatWest Banking Insights & Product Integrations](screenshots/webite_screenshots/7_natwest_products.png)
+
+### 8. Document Generation & Export
+![Exporting Data and Results](screenshots/webite_screenshots/8_export_data.png)
+
 ## Project Structure
 
-```text
-future-simulator/
-   src/
-    app/
-    components/
-      ui/
-    features/
-      dashboard/
-        components/
-        pages/
-        config.tsx
-    hooks/
-    lib/
-    pages/
-    services/
-    test/
-  .env.example
-  index.html
-  package.json
-  package-lock.json
-  README.md
-  tailwind.config.ts
-  vite.config.ts
-  vitest.config.ts
-```
+![Folder Structure](screenshots/Folder-Structure.png)
 
 ### Folder Notes
 
@@ -224,17 +198,9 @@ future-simulator/
 
 ## Architecture Notes
 
+![Architecture Diagram](screenshots/architecture.png)
+
 This project is currently a frontend-only application.
-
-High-level structure:
-
-```text
-User Browser
-  -> React/Vite frontend
-  -> local simulation engine in src/lib/forecasting.ts
-  -> optional Gemini API call for summary generation
-  -> optional live news API call for external signals
-```
 
 ### Data Flow
 
@@ -327,19 +293,3 @@ This approach was chosen because it balances transparency and demo usefulness:
 - AI adds readable summaries
 - external signals make the simulation feel closer to real decision conditions
 
-## Submission Notes
-
-The repository includes:
-
-- full frontend source code
-- dependency configuration through `package.json` and `package-lock.json`
-- environment-variable examples in `.env.example`
-- a structured source layout
-
-Before final submission, it is recommended to:
-
-- verify the app from a clean clone
-- run `npm install`
-- run `npm run dev`
-- confirm required environment variables are set
-- remove any remaining debug-only console logging if submission rules require a cleaner production codebase
