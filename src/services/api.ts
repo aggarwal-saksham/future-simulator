@@ -166,7 +166,7 @@ const scoreHeadline = (title: string, category: NewsSignal["category"]) => {
 };
 
 export async function fetchNewsSignals(): Promise<NewsSignalResult> {
-  const apiKey = import.meta.env.VITE_THENEWSAPI_TOKEN || import.meta.env.VITE_NEWS_API_KEY;
+  const apiKey = import.meta.env.VITE_THENEWSAPI_TOKEN;
 
   if (!apiKey) {
     console.info("[NewsAPI] API key missing.");
