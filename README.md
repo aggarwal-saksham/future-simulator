@@ -187,8 +187,7 @@ Behavior:
 
 ```text
 future-simulator/
-  public/
-  src/
+   src/
     app/
     components/
       ui/
