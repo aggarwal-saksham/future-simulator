@@ -41,7 +41,7 @@ export interface GeminiInsightResult {
 
 export interface NewsSignalResult {
   signals: NewsSignal[];
-  source: "live" | "empty";
+  source: "live" | "fallback";
   error: string | null;
 }
 
@@ -171,9 +171,9 @@ export async function fetchNewsSignals(): Promise<NewsSignalResult> {
   if (!apiKey) {
     console.info("[NewsAPI] API key missing.");
     return {
-      signals: [],
-      source: "empty",
-      error: "Live news is unavailable because no The News API token is configured.",
+      signals: CURATED_NEWS_SIGNALS,
+      source: "fallback",
+      error: "Live news is unavailable because no The News API token is configured. Showing curated signals.",
     };
   }
 
@@ -207,9 +207,9 @@ export async function fetchNewsSignals(): Promise<NewsSignalResult> {
     if (articles.length === 0) {
       console.warn("[NewsAPI] No articles returned.");
       return {
-        signals: [],
-        source: "empty",
-        error: "No live articles were returned for this query.",
+        signals: CURATED_NEWS_SIGNALS,
+        source: "fallback",
+        error: "No live articles were returned for this query. Showing curated signals.",
       };
     }
 
@@ -247,21 +247,21 @@ export async function fetchNewsSignals(): Promise<NewsSignalResult> {
     console.groupEnd();
 
     return {
-      signals: mappedSignals,
-      source: mappedSignals.length > 0 ? "live" : "empty",
-      error: mappedSignals.length > 0 ? null : "Live articles could not be mapped cleanly.",
+      signals: mappedSignals.length > 0 ? mappedSignals : CURATED_NEWS_SIGNALS,
+      source: mappedSignals.length > 0 ? "live" : "fallback",
+      error: mappedSignals.length > 0 ? null : "Live articles could not be mapped cleanly. Showing curated signals.",
     };
   } catch (error) {
     console.warn("News fetch fallback triggered", error);
     const message =
       error instanceof Error && error.message.includes("429")
-        ? "NewsAPI rate limit reached (429). Try again later."
+        ? "News service rate limit reached (429). Showing curated signals."
         : error instanceof Error
-          ? error.message
-          : "Live news request failed.";
+          ? `${error.message}. Showing curated signals.`
+          : "Live news request failed. Showing curated signals.";
     return {
-      signals: [],
-      source: "empty",
+      signals: CURATED_NEWS_SIGNALS,
+      source: "fallback",
       error: message,
     };
   }
