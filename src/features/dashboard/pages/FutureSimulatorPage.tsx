@@ -221,7 +221,7 @@ const FutureSimulatorPage = () => {
               ) : result ? (
                 <div ref={reportRef} className="space-y-6">
                   <div className="flex flex-wrap items-center justify-between gap-4">
-                    <h2 className="rounded-xl bg-primary/10 px-4 py-2 text-2xl font-bold text-primary">
+                    <h2 className="rounded-xl bg-primary/12 px-4 py-2 text-2xl font-bold text-primary-foreground">
                       ML model predictions
                     </h2>
                     <div className="flex flex-wrap gap-3">
