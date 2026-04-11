@@ -2,7 +2,7 @@ import { NewsSignal, CURATED_NEWS_SIGNALS, SimulationResult } from "@/lib/foreca
 import { DataPoint } from "@/lib/sampleData";
 
 const GEMINI_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent";
 const NEWS_URL = "https://api.thenewsapi.com/v1/news/all";
 
 const buildGeminiPayload = (data: DataPoint[], result: SimulationResult) => ({
