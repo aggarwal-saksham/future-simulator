@@ -151,18 +151,56 @@ export async function enhanceSummaryWithGemini(
   }
 }
 
-const classifyHeadline = (title: string): NewsSignal["category"] => {
-  if (/fx|currency|sterling|dollar|euro/i.test(title)) return "fx";
-  if (/supply|shipping|freight|port|inventory/i.test(title)) return "supply";
-  if (/inflation|cost|wages|energy/i.test(title)) return "cost";
-  if (/consumer|retail|demand|spending/i.test(title)) return "demand";
+const classifyHeadline = (text: string): NewsSignal["category"] => {
+  if (/\b(fx|forex|currency|sterling|pound|dollar|euro|exchange rate|import cost|tariff)\b/i.test(text)) {
+    return "fx";
+  }
+
+  if (/\b(supply|shipping|freight|port|inventory|logistics|delivery|factory|procurement|warehouse|lead time)\b/i.test(text)) {
+    return "supply";
+  }
+
+  if (/\b(inflation|cost|costs|wages|payroll|energy|fuel|rent|margin|pricing pressure|expenses|input prices)\b/i.test(text)) {
+    return "cost";
+  }
+
+  if (/\b(consumer|retail|demand|spending|sales|orders|footfall|ecommerce|customer|revenue|growth)\b/i.test(text)) {
+    return "demand";
+  }
+
   return "confidence";
 };
 
-const scoreHeadline = (title: string, category: NewsSignal["category"]) => {
-  if (/surge|improve|grow|boost|strong/i.test(title)) return category === "demand" ? 7 : 4;
-  if (/risk|fall|drop|weak|delay|disrupt/i.test(title)) return -8;
-  return category === "demand" ? 3 : -3;
+const scoreHeadline = (text: string, category: NewsSignal["category"]) => {
+  const positivePattern =
+    /\b(surge|improve|improves|improved|grow|growth|boost|strong|record|rise|rises|rebound|expansion|optimism|confidence up)\b/i;
+  const negativePattern =
+    /\b(risk|fall|falls|drop|drops|weak|delay|disrupt|slump|cut|cuts|concern|warning|shortage|pressure|slowdown|uncertain)\b/i;
+
+  if (positivePattern.test(text)) {
+    if (category === "demand") return 8;
+    if (category === "confidence") return 5;
+    return 4;
+  }
+
+  if (negativePattern.test(text)) {
+    if (category === "confidence") return -5;
+    return -8;
+  }
+
+  switch (category) {
+    case "demand":
+      return 4;
+    case "supply":
+      return -4;
+    case "fx":
+      return -4;
+    case "cost":
+      return -5;
+    case "confidence":
+    default:
+      return 2;
+  }
 };
 
 export async function fetchNewsSignals(): Promise<NewsSignalResult> {
@@ -228,14 +266,15 @@ export async function fetchNewsSignals(): Promise<NewsSignalResult> {
           index: number,
         ) => {
           const title = article.title || `Business signal ${index + 1}`;
-          const category = classifyHeadline(title);
+          const contextText = [title, article.description, article.snippet].filter(Boolean).join(" ");
+          const category = classifyHeadline(contextText);
 
           return {
             id: `live-${index}-${article.published_at || Date.now()}`,
             title,
             source: article.source || "The News API",
             category,
-            impact: scoreHeadline(title, category),
+            impact: scoreHeadline(contextText, category),
             summary: article.description?.trim() || article.snippet?.trim() || "Live headline added to the forecasting context.",
             selected: index < 3,
           };
