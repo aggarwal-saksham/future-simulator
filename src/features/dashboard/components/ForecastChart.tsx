@@ -48,13 +48,9 @@ export function ForecastChart({ historicalData, forecast, anomalies }: ForecastC
     >
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow mb-2">Layer 5 · Forecast Output</p>
-          <h3 className="text-2xl font-semibold text-foreground">Forecast with confidence ranges</h3>
+          <p className="eyebrow mb-2">Step 5 — Output UI</p>
+          <h3 className="text-2xl font-semibold text-foreground">Forecast Chart</h3>
         </div>
-        <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-          Historical values stay solid, the central case is dashed forward, and the shaded band shows how
-          uncertainty grows over time.
-        </p>
       </div>
 
       <ResponsiveContainer width="100%" height={420}>

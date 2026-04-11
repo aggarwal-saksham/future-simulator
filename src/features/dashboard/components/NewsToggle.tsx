@@ -29,8 +29,8 @@ export function NewsToggle({
             <Globe2 className="h-5 w-5" />
           </div>
           <div>
-            <p className="eyebrow">Layer 3 · External Signals</p>
-            <h3 className="text-xl font-semibold text-foreground">News context weighting</h3>
+            <p className="eyebrow">Step 3 — Fetch Latest News (optional)</p>
+            <h3 className="text-xl font-semibold text-foreground">Select news to base your forecast on</h3>
           </div>
         </div>
         <Button variant="secondary" className="rounded-full" onClick={onRefresh} disabled={isLoading}>
@@ -38,10 +38,6 @@ export function NewsToggle({
           Refresh signals
         </Button>
       </div>
-
-      <p className="mt-4 text-sm leading-7 text-muted-foreground">
-        Select the live headlines that should influence demand, supply, FX, or cost assumptions in this run.
-      </p>
 
       <div className="mt-4 rounded-full border border-border bg-white/70 px-4 py-2 text-xs text-muted-foreground">
         Last sync: {lastSyncedAt ?? "Not fetched yet"}

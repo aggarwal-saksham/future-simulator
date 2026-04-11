@@ -6,9 +6,7 @@ import { DashboardInsights } from "@/features/dashboard/components/DashboardInsi
 import { DataUpload } from "@/features/dashboard/components/DataUpload";
 import { ExportPanel } from "@/features/dashboard/components/ExportPanel";
 import { ForecastChart } from "@/features/dashboard/components/ForecastChart";
-import { HealthScore } from "@/features/dashboard/components/HealthScore";
 import { HeroSection } from "@/features/dashboard/components/HeroSection";
-import { InputDatasetPanel } from "@/features/dashboard/components/InputDatasetPanel";
 import { ModelTrainingScreen } from "@/features/dashboard/components/ModelTrainingScreen";
 import { NatWestCard } from "@/features/dashboard/components/NatWestCard";
 import { NewsToggle } from "@/features/dashboard/components/NewsToggle";
@@ -16,7 +14,6 @@ import { ScenarioCompare } from "@/features/dashboard/components/ScenarioCompare
 import { VariablePanel } from "@/features/dashboard/components/VariablePanel";
 import {
   baselineSimulationConfig,
-  dashboardMetricCards,
   defaultSimulationConfig,
 } from "@/features/dashboard/config";
 import { Button } from "@/components/ui/button";
@@ -47,6 +44,8 @@ const FutureSimulatorPage = () => {
   const [baselineResult, setBaselineResult] = useState<SimulationResult | null>(null);
   const [lastRunAt, setLastRunAt] = useState<string | null>(null);
   const [lastNewsSyncAt, setLastNewsSyncAt] = useState<string | null>(null);
+  const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
+  const [resultMode, setResultMode] = useState<"main" | "detailed" | "ai" | "natwest">("main");
   const reportRef = useRef<HTMLDivElement>(null);
   const lastGeminiAttemptRef = useRef(0);
 
@@ -139,6 +138,8 @@ const FutureSimulatorPage = () => {
       setResult(nextResult);
       setBaselineResult(localBaseline);
       setLastRunAt(new Date().toLocaleString("en-GB"));
+      setWizardStep(3);
+      setResultMode("main");
     } finally {
       window.clearInterval(progressTimer);
       window.setTimeout(() => {
@@ -167,27 +168,31 @@ const FutureSimulatorPage = () => {
           </div>
         </nav>
 
-        <HeroSection
-          onGetStarted={() =>
-            document.getElementById("upload")?.scrollIntoView({ behavior: "smooth", block: "start" })
-          }
-        />
+        {wizardStep === 1 && (
+          <>
+            <HeroSection
+              onGetStarted={() =>
+                document.getElementById("upload")?.scrollIntoView({ behavior: "smooth", block: "start" })
+              }
+            />
+            <DataUpload
+              data={data}
+              sourceLabel={sourceLabel}
+              onDataReady={(nextData, nextSourceLabel) => {
+                setData(nextData);
+                setSourceLabel(nextSourceLabel);
+                setResult(null);
+                setBaselineResult(null);
+                setWizardStep(2);
+              }}
+            />
+          </>
+        )}
 
-        <DataUpload
-          data={data}
-          sourceLabel={sourceLabel}
-          onDataReady={(nextData, nextSourceLabel) => {
-            setData(nextData);
-            setSourceLabel(nextSourceLabel);
-            setResult(null);
-            setBaselineResult(null);
-          }}
-        />
-
-        <section className="px-6 pb-24 pt-8">
-          <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[360px_1fr]">
-            <div className="space-y-6">
-              <VariablePanel config={config} onConfigChange={setConfig} onRun={runSimulation} isRunning={isRunning} />
+        {wizardStep === 2 && (
+          <section className="px-6 pb-24 pt-8">
+            <div className="mx-auto max-w-2xl space-y-6">
+              <VariablePanel config={config} onConfigChange={setConfig} onRun={() => { setWizardStep(3); runSimulation(); }} isRunning={isRunning} />
               <NewsToggle
                 config={config}
                 newsSignals={newsSignals}
@@ -204,74 +209,94 @@ const FutureSimulatorPage = () => {
                   }))
                 }
               />
-              <InputDatasetPanel data={selectedData} sourceLabel={sourceLabel} />
-              {result ? <HealthScore score={result.healthScore} /> : null}
             </div>
+          </section>
+        )}
 
-            <div className="space-y-6">
+        {wizardStep === 3 && (
+          <section className="px-6 pb-24 pt-8">
+            <div className="mx-auto max-w-5xl space-y-6">
               {isRunning ? (
                 <ModelTrainingScreen progress={runProgress} />
-              ) : !hasResult ? (
-                <motion.div
-                  className="panel-surface flex min-h-[420px] flex-col items-center justify-center p-10 text-center"
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <div className="rounded-3xl bg-primary/10 p-5 text-primary">
-                    <LineChart className="h-10 w-10" />
-                  </div>
-                  <h2 className="mt-6 text-3xl font-semibold text-foreground">Run the first simulation</h2>
-                  <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
-                    Upload data, adjust the scenario, and generate a clearer short-range forecast.
-                  </p>
-                  <Button className="mt-6 rounded-full px-6" onClick={runSimulation}>
-                    Generate forecast
-                  </Button>
-                </motion.div>
               ) : result ? (
                 <div ref={reportRef} className="space-y-6">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {dashboardMetricCards.map((metric) => (
-                      <div key={metric.label} className="panel-surface p-5">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm text-muted-foreground">{metric.label}</p>
-                          <metric.icon className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <p className={`mt-4 text-3xl font-semibold ${metric.getTone(result)}`}>
-                          {metric.getValue(result)}
-                        </p>
-                      </div>
-                    ))}
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <h2 className="rounded-xl bg-primary/10 px-4 py-2 text-2xl font-bold text-primary">
+                      ML model predictions
+                    </h2>
+                    <div className="flex flex-wrap gap-3">
+                      <Button
+                        onClick={() => setResultMode("main")}
+                        variant={resultMode === "main" ? "default" : "outline"}
+                      >
+                        Main View
+                      </Button>
+                      <Button
+                        onClick={() => setResultMode("detailed")}
+                        variant={resultMode === "detailed" ? "default" : "outline"}
+                      >
+                        Detailed Report
+                      </Button>
+                      <Button
+                        onClick={() => setResultMode("ai")}
+                        variant={resultMode === "ai" ? "default" : "outline"}
+                      >
+                        AI Summary
+                      </Button>
+                      <Button
+                        onClick={() => setResultMode("natwest")}
+                        variant={resultMode === "natwest" ? "default" : "outline"}
+                      >
+                        How NatWest Can Help
+                      </Button>
+                    </div>
                   </div>
 
-                  <ForecastChart historicalData={selectedData} forecast={result.forecast} anomalies={result.anomalies} />
-                  <DashboardInsights result={result} />
-                  <ScenarioCompare baselineResult={baselineResult} scenarioResult={result} />
-                  <AISummaryCard
-                    headline={result.insightHeadline}
-                    takeaway={result.summary}
-                    natwestAction={result.natwestActionLabel}
-                    newsImpact={result.newsImpact}
-                    apiMode={apiMode}
-                    apiError={apiError}
-                  />
-                  <NatWestCard triggers={result.triggers} />
-                </div>
-              ) : null}
+                  {(resultMode === "main" || resultMode === "detailed") && (
+                    <ForecastChart
+                      historicalData={selectedData}
+                      forecast={result.forecast}
+                      anomalies={result.anomalies}
+                    />
+                  )}
 
-              {result && !isRunning ? (
-                <>
+                  {resultMode === "detailed" && (
+                    <>
+                      <ScenarioCompare baselineResult={baselineResult} scenarioResult={result} />
+                      <br/>
+                      <DashboardInsights result={result} />
+                    </>
+                  )}
+
+                  {resultMode === "ai" && (
+                     <AISummaryCard
+                        headline={result.insightHeadline}
+                        takeaway={result.summary}
+                        natwestAction={result.natwestActionLabel}
+                        newsImpact={result.newsImpact}
+                        apiMode={apiMode}
+                        apiError={apiError}
+                     />
+                  )}
+
+                  {resultMode === "natwest" && (
+                     <NatWestCard triggers={result.triggers} />
+                  )}
+
                   <ExportPanel
                     data={selectedData}
                     result={result}
                     sourceLabel={sourceLabel}
                     reportRef={reportRef}
                   />
-                </>
+                  <Button onClick={() => setWizardStep(2)} variant="secondary" className="w-full">
+                    Go Back to Steps
+                  </Button>
+                </div>
               ) : null}
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </div>
     </div>
   );

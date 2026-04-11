@@ -69,8 +69,8 @@ export function VariablePanel({
           <Settings2 className="h-5 w-5" />
         </div>
         <div>
-          <p className="eyebrow">Controls</p>
-          <h3 className="text-xl font-semibold text-foreground">Simulation variables</h3>
+          <p className="eyebrow">Step 2 — AI processing core</p>
+          <h3 className="text-xl font-semibold text-foreground">Configure Parameters</h3>
         </div>
       </div>
 
@@ -78,12 +78,6 @@ export function VariablePanel({
         {renderNumericControl("Forecast horizon", "horizon", config.horizon, 1, 12, " weeks")}
         {renderNumericControl("Growth assumption", "growthRate", config.growthRate, -20, 30, "%")}
         {renderNumericControl("Cost pressure", "expenseShock", config.expenseShock, 0, 30, "%")}
-        {renderNumericControl("Planned hires", "hiringPlan", config.hiringPlan, 0, 20, " roles")}
-        {renderNumericControl("Marketing boost", "marketingBoost", config.marketingBoost, 0, 25, "%")}
-        {renderNumericControl("Price change", "priceChange", config.priceChange, -15, 20, "%")}
-        {renderNumericControl("Supplier risk", "supplierRisk", config.supplierRisk, 0, 25, "%")}
-        {renderNumericControl("FX sensitivity", "fxSensitivity", config.fxSensitivity, 0, 25, "%")}
-        {renderNumericControl("Inventory cover", "inventoryWeeks", config.inventoryWeeks, 0, 12, " weeks")}
 
         <div className="grid gap-4 rounded-[24px] border border-border bg-white/60 p-4">
           <div className="flex items-center justify-between">
@@ -94,17 +88,6 @@ export function VariablePanel({
             <Switch
               checked={config.removeOutliers}
               onCheckedChange={(value) => update("removeOutliers", value)}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Apply news signals</Label>
-              <p className="text-sm text-muted-foreground">Blend external demand or supply pressure into the run.</p>
-            </div>
-            <Switch
-              checked={config.includeNews}
-              onCheckedChange={(value) => update("includeNews", value)}
             />
           </div>
 

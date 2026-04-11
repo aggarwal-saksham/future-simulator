@@ -21,7 +21,7 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
             transition={{ duration: 0.5 }}
           >
             <Sparkles className="h-4 w-4" />
-            Forecasting workspace
+            What does this website do?
           </motion.span>
 
           <motion.h1
@@ -30,8 +30,8 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.1 }}
           >
-            Forecast the next six weeks.
-            <span className="block text-primary-foreground/72">See the signal before it becomes a problem.</span>
+            We predict your future cash flow.
+            <span className="block text-primary-foreground/72">So you can act before you run out of money.</span>
           </motion.h1>
 
           <motion.p
@@ -40,8 +40,7 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.18 }}
           >
-            Upload operating data, adjust a few assumptions, and get a faster view of risk, confidence, and next
-            steps.
+            This website takes your past sales data and uses AI to guess what will happen next. If things look bad, we show you NatWest loans to help. If things look good, we show you ways to grow faster!
           </motion.p>
 
           <motion.div
@@ -71,18 +70,18 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
             {[
               {
                 icon: TrendingUp,
-                title: "Ranges",
-                text: "Low, central, and high cases in one view.",
+                title: "1. Upload Data",
+                text: "Give us your past sales history.",
               },
               {
                 icon: ShieldCheck,
-                title: "Signals",
-                text: "Key risk signals surfaced without extra noise.",
+                title: "2. Tell us your plans",
+                text: "Expect more sales? Higher costs? Let us know.",
               },
               {
                 icon: Sparkles,
-                title: "Actions",
-                text: "A concise next-step summary when the run completes.",
+                title: "3. See the future",
+                text: "Our AI shows if you will survive or need a loan.",
               },
             ].map((item) => (
               <div key={item.title} className="rounded-[24px] border border-white/10 bg-white/4 p-4">
@@ -95,7 +94,7 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
 
           <div className="mt-5 rounded-[24px] bg-white/6 p-4">
             <p className="text-sm leading-6 text-primary-foreground/72">
-              A lighter forecasting dashboard for quick scenario checks.
+              A simple tool to help anyone understand their business cash flow.
             </p>
           </div>
         </motion.div>
