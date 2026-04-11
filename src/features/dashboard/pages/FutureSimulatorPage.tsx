@@ -161,8 +161,8 @@ const FutureSimulatorPage = () => {
                 FS
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.24em] text-white/55">Future Simulator</p>
-                <p className="text-sm text-white/72">Scenario forecasting</p>
+                <p className="text-xs uppercase tracking-[0.24em] text-white/50">Future Simulator</p>
+                <p className="text-sm text-white/70">Scenario forecasting</p>
               </div>
             </div>
           </div>
