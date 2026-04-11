@@ -2,9 +2,11 @@
 
 ## Overview
 
-Future Simulator is a React-based forecasting dashboard for exploring short-term business scenarios. It helps a user upload operating data, adjust a set of business assumptions, and generate a six-week forecast with confidence ranges, anomaly detection, and a concise AI-assisted summary. The project is aimed at hackathon judges, product reviewers, and SME-focused banking or finance teams who need a fast way to understand how operational changes and external signals could affect near-term performance.
+**What this project does:** Future Simulator is a React-based forecasting dashboard for exploring short-term business scenarios. It helps a user upload operating data, adjust a set of business assumptions, and generate a six-week forecast with confidence ranges, anomaly detection, and a concise AI-assisted summary.
 
-The project solves a common decision-making problem: many small businesses and finance teams have historical data, but they do not have a simple interface for testing "what happens next" under changing growth, cost, staffing, FX, or supply conditions. This application turns that data into an interactive scenario model and presents the output in a readable dashboard instead of requiring spreadsheet-heavy manual analysis.
+**What problem it solves:** The project solves a common decision-making problem: many small businesses and finance teams have historical data, but they do not have a simple interface for testing "what happens next" under changing growth, cost, staffing, FX, or supply conditions. This application turns that data into an interactive scenario model and presents the output in a readable dashboard instead of requiring spreadsheet-heavy manual analysis.
+
+**Who the intended users are:** This project is aimed at hackathon judges, product reviewers, and SME-focused banking or finance teams who need a fast way to understand how operational changes and external signals could affect near-term performance.
 
 ## Features
 
