@@ -214,6 +214,6 @@ VITE_THENEWSAPI_TOKEN=
   📧 sakshamaggarwal_23it145@dtu.ac.in  
   📧 saksham08035@gmail.com 
 
-- **Saksham Sapra (23/IT/147)**  
+- **Saksham Sapra**  
   📧 sakshamsapra_23it147@dtu.ac.in  
 
