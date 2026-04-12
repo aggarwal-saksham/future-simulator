@@ -206,9 +206,14 @@ The project expects the following values in `.env`:
 VITE_GEMINI_API_KEY=
 VITE_THENEWSAPI_TOKEN=
 ```
+## 👥 Team Byte Busters
 
-## **Authors**
-### 👥 Team Byte Busters
-- Saksham Aggarwal (23/IT/145)
-- Saksham Sapra (23/IT/147)
+### Authors
+
+- **Saksham Aggarwal (Team Leader)**  
+  📧 sakshamaggarwal_23it145@dtu.ac.in  
+  📧 saksham08035@gmail.com 
+
+- **Saksham Sapra (23/IT/147)**  
+  📧 sakshamsapra_23it147@dtu.ac.in  
 
