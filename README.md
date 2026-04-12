@@ -99,7 +99,6 @@ Current status:
 
 - test tooling is present
 - test coverage is minimal
-- the current repository should not claim broad or comprehensive automated test coverage
 
 To run tests:
 
@@ -111,7 +110,7 @@ cmd /c npm run test
 
 - The app is currently frontend-only, meaning API keys are passed directly to client-side bundles.
 - Live news is dependent on The News API uptime, and Gemini logic defaults to a deterministic summary if heavily rate-limited.
-- Simulation logic relies on predictive heuristics suited solely for hackathon prototyping, not validated financial models.
+- Simulation logic relies on predictive heuristics suited solely for prototyping, not validated financial models.
 
 ## Future Improvements
 
@@ -207,3 +206,9 @@ The project expects the following values in `.env`:
 VITE_GEMINI_API_KEY=
 VITE_THENEWSAPI_TOKEN=
 ```
+
+## **Authors**
+### 👥 Team Byte Busters
+- Saksham Aggarwal (23/IT/145)
+- Saksham Sapra (23/IT/147)
+
